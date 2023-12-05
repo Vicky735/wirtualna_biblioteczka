@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Witaj w wirtualnej biblioteczce</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Wirtualna biblioteczka</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">Strona główna</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user_profile') }}">Twój profil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('settings') }}">Ustawienia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj się</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <form method="get" action="{{ url_for('search_books') }}">
+        <label for="search_query">Wyszukaj książki po tytule lub autorze:</label>
+        <input type="text" name="search_query" id="search_query" required>
+        <button type="submit">Szukaj</button>
+    </form>
+
+    <h1>Witaj, {{ session['username'] }}!</h1>
+
+    {% if user_favourite_genres %}
+        <h2>Polecane książki</h2>
+        <ul>
+            {% for genre in user_favourite_genres %}
+                <h4>{{ genre.genre_name }}</h4>
+                <ul>
+                    {% for book in Books.query.join(BookGenres).filter(BookGenres.genre_id == genre.genre_id).all() %}
+                        <li>
+                            <div class="book-container">
+                                <a href="{{ url_for('book_details', book_id=book.book_id) }}">
+                                    <img src="{{ book.cover_img_url }}" alt="{{ book.title }} Cover">
+                                </a>
+                            </div>
+                            <p class="title">{{ book.title }}</p>
+                            <p class="author">{{ book.author }}</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
+        </ul>
+
+    {% else %}
+        <h2>Wybierz 5 ulubionych gatunków:</h2>
+        <form method="post" action="{{ url_for('home') }}" onsubmit="return validateGenres();">
+            <div id="genresContainer">
+                {% for genre in genres %}
+                    <div>
+                        <input type="checkbox" name="selected_genres" value="{{ genre.genre_id }}" id="genre_{{ genre.genre_id }}">
+                        <label for="genre_{{ genre.genre_id }}">{{ genre.genre_name }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit">Dodaj do ulubionych</button>
+        </form>
+    {% endif %}
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <script>
+        function validateGenres() {
+            var selectedGenres = document.querySelectorAll('#genresContainer input[name="selected_genres"]:checked');
+            if (selectedGenres.length !== 5) {
+                alert('Proszę wybierz dokładnie 5 gatunków');
+                return false;
+            }
+            return true;
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>

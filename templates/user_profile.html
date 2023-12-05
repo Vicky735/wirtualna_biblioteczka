@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twój profil</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Wirtualna biblioteczka</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">Strona główna</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user_profile') }}">Twój profil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('settings') }}">Ustawienia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj się</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <h1>Twój profil</h1>
+
+    {% if 'username' in session %}
+        <p>Witaj, {{ session['username'] }}!</p>
+
+        <h2>Twoje półki z książkami</h2>
+        <div class="bookshelves">
+            {% for bookshelf in user_bookshelves %}
+                <div class="bookshelf">
+                    <h3>{{ bookshelf.shelf_name }}</h3>
+                    <ul>
+                        {% for book_on_shelf in bookshelf.books %}
+                            <li>
+                                <img src="{{ book_on_shelf.cover_img_url }}" alt="{{ book_on_shelf.title }} Cover">
+                                <div class="shelf-bar"></div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endfor %}
+        </div>
+
+
+        <h2>Followed Users</h2>
+        <ul>
+            {% for followed_user in user.followed_users %}
+                <li>{{ followed_user.username }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Blocked Users</h2>
+        <ul>
+            {% for blocked_user in user.blocked_users %}
+                <li>{{ blocked_user.username }}</li>
+            {% endfor %}
+        </ul>
+
+        <h2>Favorite Genres</h2>
+        <ul>
+            {% for genre in user.favorite_genres %}
+                <li>{{ genre.genre_name }}</li>
+            {% endfor %}
+        </ul>
+
+    {% else %}
+        <p>Zaloguj się aby uzyskać dostęp do swojego profilu.</p>
+        <a href="{{ url_for('login') }}">Zaloguj</a>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>

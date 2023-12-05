@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wyszukiwarka książek</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Wirtualna biblioteczka</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">Strona główna</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user_profile') }}">Twój profil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('settings') }}">Ustawienia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj się</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <form method="get" action="{{ url_for('search_books') }}">
+        <label for="search_query">Wyszukaj książki po tytule lub autorze:</label>
+        <input type="text" name="search_query" id="search_query" required>
+        <button type="submit">Szukaj</button>
+    </form>
+
+    <h1>Wyszukiwarka książek</h1>
+
+    {% if books %}
+        <p>Wyniki wyszukiwania dla "{{ search_query }}":</p>
+        <div class="book-list">
+            <ul>
+                {% for book in books %}
+                    <li>
+                        <div class="book-container">
+                            <img src="{{ book.cover_img_url }}" alt="{{ book.title }} Cover">
+                        </div>
+                        <p class="title">{{ book.title }}</p>
+                        <p class="author">{{ book.author }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <p>Brak wyników wyszukiwania dla "{{ search_query }}".</p>
+    {% endif %}
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>

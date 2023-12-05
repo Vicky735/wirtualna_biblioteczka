@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rejestracja</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Wirtualna biblioteczka</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">Strona główna</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <h1>Witaj w wirtualnej biblioteczce</h1>
+    <h2>Zarejestruj się</h2>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flashes">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+
+    <form method="post" action="{{ url_for('register') }}">
+        <label for="newUsername">Nazwa użytkownika:</label>
+        <input type="text" name="newUsername" required><br>
+
+        <label for="newEmail">E-mail:</label>
+        <input type="email" name="newEmail" required maxlength="32"><br>
+
+        <label for="newPassword">Hasło:</label>
+        <input type="password" name="newPassword" required><br>
+
+        <input type="submit" value="Zarejestruj">
+    </form>
+
+    <p>Masz już konto? <a href="{{ url_for('login') }}">Zaloguj się tutaj</a>.</p>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+
+</body>
+</html>

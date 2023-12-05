@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ustawienia</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Wirtualna biblioteczka</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('home') }}">Strona główna</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('user_profile') }}">Twój profil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('settings') }}">Ustawienia</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Wyloguj się</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <h1>Ustawienia</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flash-messages">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    {% if 'username' in session %}
+        <form method="post" action="{{ url_for('settings') }}">
+            <input type="hidden" name="user_id" value="{{ user.user_id }}">
+
+            <h2>Zmień nazwę użytkownika</h2>
+            <label for="new_username">Nowa nazwa użytkownika:</label>
+            <input type="text" id="new_username" name="new_username" required>
+            <button type="submit" name="change_option" value="change_username" class="btn btn-primary">Zapisz</button>
+            {% if 'username_taken' in messages %}
+                <p class="error">{{ messages['username_taken'] }}</p>
+            {% endif %}
+        </form>
+
+        <h2>Zmień hasło</h2>
+        <form method="post" action="{{ url_for('settings') }}">
+            <label for="current_password">Obecne hasło:</label>
+            <input type="password" id="current_password" name="current_password" required>
+            <label for="new_password">Nowe hasło:</label>
+            <input type="password" id="new_password" name="new_password" required>
+            <label for="confirm_password">Potwierdź nowe hasło:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+            <button type="submit" name="change_option" value="change_password" class="btn btn-primary">Zapisz</button>
+        </form>
+
+        <h2>Zmień ulubione gatunki</h2>
+        <form method="post" action="{{ url_for('settings') }}">
+            <h3>Obecne ulubione gatunki</h3>
+            <div>
+                {% for genre in user_favourite_genres %}
+                    <span>
+                        {{ genre.genre_name }}
+                        <button type="button" class="remove-genre btn btn-danger" data-genre-id="{{ genre.genre_id }}">x</button>
+                    </span>
+                {% endfor %}
+            </div>
+
+            <h3>Dodaj nowe ulubione gatunki</h3>
+            <div id="genresContainer" class="checkbox-list">
+                {% for genre in genres %}
+                    {% if genre not in user_favourite_genres %}
+                        <div class="checkbox-item">
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="added_genres" value="{{ genre.genre_id }}" class="genre-checkbox">
+                                {{ genre.genre_name }}
+                            </label>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <button type="submit" name="change_option" value="add_genres" class="btn btn-primary">Dodaj</button>
+            {% if 'max_genres_exceeded' in messages %}
+                <p class="error">{{ messages['max_genres_exceeded'] }}</p>
+            {% endif %}
+        </form>
+
+    {% endif %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var removeButtons = document.querySelectorAll('.remove-genre');
+            var checkboxes = document.querySelectorAll('.genre-checkbox');
+            var maxGenres = 5;
+
+            removeButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var genreId = button.getAttribute('data-genre-id');
+                    removeGenreFromFavorites(genreId);
+                });
+            });
+
+
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    var selectedGenres = document.querySelectorAll('.genre-checkbox:checked');
+                    var currentGenres = document.querySelectorAll('.remove-genre').length;
+                    
+                    if (selectedGenres.length + currentGenres > maxGenres) {
+                        alert('Możesz mieć maksymalnie 5 ulubionych gatunków.');
+                        this.checked = false;
+                    }
+                });
+            });
+        });
+
+        function removeGenreFromFavorites(genreId) {
+
+            var genreCheckbox = document.querySelector('input[name="added_genres"][value="' + genreId + '"]');
+            if (genreCheckbox) {
+                genreCheckbox.checked = false;
+            }
+
+            var genreElement = document.querySelector('.remove-genre[data-genre-id="' + genreId + '"]');
+            if (genreElement) {
+                genreElement.parentNode.remove();
+            }
+            
+            fetch('/remove_genre', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ genreId: genreId }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+            
+        }
+
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>
