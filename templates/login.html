@@ -22,27 +22,30 @@
             </ul>
         </div>
     </nav>
+    <p></p>
 
     <h2>Zaloguj się</h2>
 
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <ul class="flashes">
-                {% for message in messages %}
-                    <li>{{ message }}</li>
+            <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
                 {% endfor %}
             </ul>
         {% endif %}
     {% endwith %}
 
     <form method="post" action="{{ url_for('login') }}">
-        <label for="username">Nazwa użytkownika:</label>
-        <input type="text" name="username" required><br>
+        {{ form.hidden_tag() }}
 
-        <label for="password">Hasło:</label>
-        <input type="password" name="password" required><br>
+        <label for="{{ form.username.id }}">{{ form.username.label.text }}:</label>
+        {{ form.username() }}<br>
 
-        <input type="submit" value="Zaloguj">
+        <label for="{{ form.password.id }}">{{ form.password.label.text }}:</label>
+        {{ form.password() }}<br>
+
+        {{ form.submit() }}
     </form>
 
     <p>Nie posiadasz konta? <a href="{{ url_for('register') }}">Zarejestruj się tutaj</a>.</p>

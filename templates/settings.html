@@ -6,6 +6,7 @@
     <title>Ustawienia</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="static/style.css">
+
 </head>
 <body>
 
@@ -31,40 +32,47 @@
             </ul>
         </div>
     </nav>
+    <p></p>
 
     <h1>Ustawienia</h1>
 
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <ul class="flash-messages">
-            {% for message in messages %}
-                <li>{{ message }}</li>
-            {% endfor %}
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
             </ul>
         {% endif %}
     {% endwith %}
 
     {% if 'username' in session %}
         <form method="post" action="{{ url_for('settings') }}">
+            {{ change_username_form.hidden_tag() }}
             <input type="hidden" name="user_id" value="{{ user.user_id }}">
 
             <h2>Zmień nazwę użytkownika</h2>
-            <label for="new_username">Nowa nazwa użytkownika:</label>
-            <input type="text" id="new_username" name="new_username" required>
+            <label for="{{ change_username_form.new_username.id }}">{{ change_username_form.new_username.label.text }}:</label>
+            {{ change_username_form.new_username() }}
             <button type="submit" name="change_option" value="change_username" class="btn btn-primary">Zapisz</button>
-            {% if 'username_taken' in messages %}
-                <p class="error">{{ messages['username_taken'] }}</p>
-            {% endif %}
         </form>
 
         <h2>Zmień hasło</h2>
         <form method="post" action="{{ url_for('settings') }}">
-            <label for="current_password">Obecne hasło:</label>
-            <input type="password" id="current_password" name="current_password" required>
-            <label for="new_password">Nowe hasło:</label>
-            <input type="password" id="new_password" name="new_password" required>
-            <label for="confirm_password">Potwierdź nowe hasło:</label>
-            <input type="password" id="confirm_password" name="confirm_password" required>
+            {{ change_password_form.hidden_tag() }}
+            <label for="{{ change_password_form.current_password.id }}">{{ change_password_form.current_password.label.text }}:</label>
+            {{ change_password_form.current_password() }}
+            <label for="{{ change_password_form.new_password.id }}">{{ change_password_form.new_password.label.text }}:</label>
+            {{ change_password_form.new_password() }}
+            {% for error in change_password_form.new_password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            <label for="{{ change_password_form.confirm_password.id }}">{{ change_password_form.confirm_password.label.text }}:</label>
+            {{ change_password_form.confirm_password() }}
+            {% for error in change_password_form.confirm_password.errors %}
+                <span style="color: red;">{{ error }}</span>
+            {% endfor %}
+            <p></p>
             <button type="submit" name="change_option" value="change_password" class="btn btn-primary">Zapisz</button>
         </form>
 
@@ -75,7 +83,7 @@
                 {% for genre in user_favourite_genres %}
                     <span>
                         {{ genre.genre_name }}
-                        <button type="button" class="remove-genre btn btn-danger" data-genre-id="{{ genre.genre_id }}">x</button>
+                        <button type="button" class="remove-genre btn btn-danger" id="remove-genre-{{ genre.genre_id }}" data-genre-id="{{ genre.genre_id }}">x</button>
                     </span>
                 {% endfor %}
             </div>
@@ -115,32 +123,31 @@
                 });
             });
 
-
             checkboxes.forEach(function (checkbox) {
                 checkbox.addEventListener('change', function () {
                     var selectedGenres = document.querySelectorAll('.genre-checkbox:checked');
                     var currentGenres = document.querySelectorAll('.remove-genre').length;
-                    
+
                     if (selectedGenres.length + currentGenres > maxGenres) {
                         alert('Możesz mieć maksymalnie 5 ulubionych gatunków.');
                         this.checked = false;
                     }
+
+                    updateRemoveButtonState();
                 });
             });
-        });
 
         function removeGenreFromFavorites(genreId) {
-
             var genreCheckbox = document.querySelector('input[name="added_genres"][value="' + genreId + '"]');
             if (genreCheckbox) {
                 genreCheckbox.checked = false;
             }
 
-            var genreElement = document.querySelector('.remove-genre[data-genre-id="' + genreId + '"]');
+            var genreElement = document.getElementById('remove-genre-' + genreId);
             if (genreElement) {
                 genreElement.parentNode.remove();
             }
-            
+
             fetch('/remove_genre', {
                 method: 'POST',
                 headers: {
@@ -151,13 +158,33 @@
             .then(response => response.json())
             .then(data => {
                 console.log(data);
+                if (data.success) {
+                    user_favourite_genres = user_favourite_genres.filter(genre => genre.genre_id !== parseInt(genreId));
+
+                    var flashContainer = document.getElementById('flash-container');
+                    if (flashContainer) {
+                        flashContainer.innerHTML = '<div class="alert alert-success" role="alert">Ulubiony gatunek został usunięty pomyślnie!</div>';
+                    }
+                }
             })
             .catch((error) => {
                 console.error('Error:', error);
             });
-            
         }
 
+        function updateRemoveButtonState() {
+                var removeButtons = document.querySelectorAll('.remove-genre');
+                removeButtons.forEach(function (button) {
+                    var genreId = button.getAttribute('data-genre-id');
+                    var checkbox = document.querySelector('input[name="added_genres"][value="' + genreId + '"]');
+                    if (checkbox && !checkbox.checked) {
+                        button.disabled = true;
+                    } else {
+                        button.disabled = false;
+                    }
+                });
+            }
+        });
     </script>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>

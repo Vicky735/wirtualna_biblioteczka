@@ -5,7 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ book.title }}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <link rel="stylesheet" href="static/style.css">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+
+        .book-container {
+            display: flex;
+            max-width: 1100px;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .book-cover {
+            position: relative;
+            width: 250px;
+            height: 300px;
+            overflow: hidden;
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center center;
+        }
+
+        .book-details {
+            padding: 30px;
+        }
+
+        .book-title {
+            font-size: 28px;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .book-author {
+            font-size: 20px;
+            color: #494949;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .average-rating {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0e87be;
+            margin-bottom: 8px;
+        }
+
+        .user-rating {
+            display: flex;
+            align-items: center;
+        }
+
+        .user-rating input {
+            display: none;
+        }
+
+        .user-rating label {
+            cursor: pointer;
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background-image: url('/static/images/grey_star.png'); 
+            background-size: cover;
+        }
+
+        .user-rating label.filled {
+            background-image: url('/static/images/yellow_star.png'); 
+        }
+
+        .genres {
+            margin-bottom: 8px;
+            color: #3b3b3b;
+        }
+
+        .user-review {
+            padding: 15px;
+            margin-bottom: 5px;
+        }
+
+        #reviewTextarea {
+            width: 100%; 
+        }
+
+        .reviews {
+            margin-bottom: 16px;
+        }
+
+        .review {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .review p {
+            margin: 10px;
+        }
+
+        .rating label.filled {
+            background-image: url('/static/images/yellow_star.png');
+            background-position: 0 0;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -31,29 +145,220 @@
             </ul>
         </div>
     </nav>
+    <p></p>
 
-    <h1>{{ book.title }}</h1>
-    <p>Autor: {{ book.author }}</p>
-    <p>Gatunki: {% for genre in genres %}{{ genre.genre_name }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-    <img src="{{ book.cover_img_url }}" alt="{{ book.title }} Cover">
-
-    <form method="post" action="{{ url_for('add_to_shelf', book_id=book.book_id) }}">
-        <label for="shelf">Dodaj na półkę:</label>
-        <select name="shelf" id="shelf">
-            {% if user_bookshelves %}
-                {% for bookshelf in user_bookshelves %}
-                    <option value="{{ bookshelf.shelf_id }}">{{ bookshelf.shelf_name }}</option>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
                 {% endfor %}
-            {% else %}
-                <option value="" disabled>Nie ma dostępnych półek.</option>
-            {% endif %}
-        </select>
-        <button type="submit">Dodaj na półkę</button>
-    </form>
+            </ul>
+        {% endif %}
+    {% endwith %}
+
+    <div class="book-container">
+        <div class="book-cover">
+            <img src="{{ book.cover_img_url }}" alt="{{ book.title }}">
+        </div>
+        <div div id="book-details" class="book-details" data-book-id="{{ book.book_id }}">
+            <div class="book-title">{{ book.title }}</div>
+            <div class="book-author">Autor: {{ book.author }}</div>
+            <div class="average-rating">
+                Średnia ocen: {{ book.average_rating }}
+            </div>
+            <div class="genres">Gatunki: {% for genre in genres %}{{ genre.genre_name }}{% if not loop.last %}, {% endif %}{% endfor %}</div>
+            <form method="post" action="{{ url_for('add_to_shelf', book_id=book.book_id) }}">
+                <label for="shelf">Dodaj na półkę:</label>
+                <select name="shelf" id="shelf">
+                    {% if user_bookshelves %}
+                        {% for bookshelf in user_bookshelves %}
+                            <option value="{{ bookshelf.shelf_id }}">{{ bookshelf.shelf_name }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option value="" disabled>Nie ma dostępnych półek.</option>
+                    {% endif %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Dodaj na półkę</button>
+            </form>
+
+            <form method="POST" action="{{ url_for('add_rating', book_id=book.book_id) }}">
+                <div class="user-rating">
+                    Twoja Ocena:
+                    <input type="radio" name="rating" id="user_star1" value="1" {% if user_ratings and user_ratings.rating == 1 %}checked{% endif %} /><label for="user_star1" title="1 gwiazdka"></label>
+                    <input type="radio" name="rating" id="user_star2" value="2" {% if user_ratings and user_ratings.rating == 2 %}checked{% endif %} /><label for="user_star2" title="2 gwiazdki"></label>
+                    <input type="radio" name="rating" id="user_star3" value="3" {% if user_ratings and user_ratings.rating == 3 %}checked{% endif %} /><label for="user_star3" title="3 gwiazdki"></label>
+                    <input type="radio" name="rating" id="user_star4" value="4" {% if user_ratings and user_ratings.rating == 4 %}checked{% endif %} /><label for="user_star4" title="4 gwiazdki"></label>
+                    <input type="radio" name="rating" id="user_star5" value="5" {% if user_ratings and user_ratings.rating == 5 %}checked{% endif %} /><label for="user_star5" title="5 gwiazdek"></label>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary btn-sm">Dodaj Ocenę</button>
+                    <button type="button" id="removeRatingButton" class="btn btn-primary btn-sm">Usuń Ocenę</button>
+                </div>
+            </form>
     
+            <form method="POST" action="{{ url_for('add_review', book_id=book.book_id) }}" id="addReviewForm">
+                <div class="user-review">
+                    Twoja Recenzja:
+                    <textarea name="review" id="reviewTextarea" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Dodaj Recenzję</button>
+            </form>
+            
+            <div id="reviewsContainer" class="reviews">
+                <p></p>
+                {% if all_reviews %}
+                    <h3>Recenzje:</h3>
+                        <ul>
+                            {% for review in all_reviews %}
+                                <li class="review">
+                                    <p>Użytkownik: {{ review.user.username }}</p>
+                                    <p>Recenzja: {{ review.review }}</p>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                {% else %}
+                    <h3>Brak recenzji</h3>
+                {% endif %}
+            </div>
+        </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const userStars = document.querySelectorAll('.user-rating input');
+        
+            const bookDetailsElement = document.getElementById('book-details');
+            if (bookDetailsElement && bookDetailsElement.dataset.bookId) {
+                const bookId = bookDetailsElement.dataset.bookId;
+                console.log('Book ID:', bookId);
+
+                const storedRating = localStorage.getItem(`userRating_${bookId}`);
+                if (storedRating) {
+                    updateStarAppearance(userStars, storedRating);
+                }
+        
+                userStars.forEach((userStar, index) => {
+                    userStar.addEventListener('click', function () {
+                        const clickedUserRating = index + 1;
+                        console.log('Zaznaczono gwiazdkę oceny użytkownika o wartości: ' + clickedUserRating);
+        
+                        localStorage.setItem(`userRating_${bookId}`, clickedUserRating);
+                        updateStarAppearance(userStars, clickedUserRating);
+                    });
+                });
+        
+                const removeRatingButton = document.getElementById('removeRatingButton');
+                removeRatingButton.addEventListener('click', function () {
+                    removeRating(bookId);
+                });
+        
+                function removeRating(bookId) {
+                    console.log('removeRating function called for Book ID:', bookId);
+        
+                    fetch(`/remove_rating/${bookId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Response JSON data:', data);
+        
+                            localStorage.removeItem(`userRating_${bookId}`);
+        
+                            userStars.forEach((star) => {
+                                star.checked = false;
+                                const starElement = document.querySelector(`label[for="${star.id}"]`);
+                                starElement.classList.remove('filled');
+                            });
+                            setTimeout(() => {
+                                location.reload();
+                            }, 100);
+                        })
+                        .catch((error) => {
+                            console.error('Błąd podczas usuwania oceny z bazy danych:', error);
+                        });
+                }
+        
+                function updateStarAppearance(stars, clickedRating) {
+                    stars.forEach((star, index) => {
+                        const starElement = document.querySelector(`label[for="${star.id}"]`);
+        
+                        star.checked = false;
+        
+                        if (index < clickedRating) {
+                            star.checked = true;
+                            starElement.classList.add('filled');
+                        } else {
+                            starElement.classList.remove('filled');
+                        }
+                    });
+        
+                    const ratingInput = document.querySelector('input[name="rating"]');
+                    ratingInput.value = clickedRating;
+                }
+            } else {
+                console.error('Brak dostępu do atrybutu data-book-id w elemencie #book-details');
+            }
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $("#addReviewForm").submit(function(event) {
+                event.preventDefault(); 
+
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    type: "POST",
+                    url: $(this).attr("action"),
+                    data: formData,
+                    success: function(response) {
+                        $("#reviewTextarea").val("");
+
+                        console.log("Review added successfully. Updating reviews...");
+                        updateReviews();
+                    },
+                    error: function(error) {
+                        console.log("Error adding review:", error);
+                    }
+                });
+            });
+
+            function updateReviews() {
+                var bookId = $("#book-details").data("book-id");
+
+                $.ajax({
+                    type: "GET",
+                    url: "/get_reviews/" + bookId,
+                    success: function(data) {
+                        console.log("Received updated reviews data:", data);
+
+                        $("#reviewsContainer").html("<h2>Recenzje:</h2><ul></ul>");
+                        if (data.length > 0) {
+                            $.each(data, function(index, review) {
+                                $("#reviewsContainer ul").append("<li class='review'><p>Autor: " + review.user + "</p><p>Recenzja: " + review.review + "</p></li>");
+                            });
+                        } else {
+                            $("#reviewsContainer ul").append("<p>Brak recenzji.</p>");
+                        }
+                    },
+                    error: function(error) {
+                        console.log("Error updating reviews:", error);
+                    }
+                });
+            }
+
+            updateReviews();
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-
+    
 </body>
 </html>

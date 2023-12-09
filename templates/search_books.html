@@ -47,7 +47,9 @@
                 {% for book in books %}
                     <li>
                         <div class="book-container">
-                            <img src="{{ book.cover_img_url }}" alt="{{ book.title }} Cover">
+                            <a href="{{ url_for('book_details', book_id=book.book_id) }}">
+                                <img src="{{ book.cover_img_url }}" alt="{{ book.title }} Cover">
+                            </a>
                         </div>
                         <p class="title">{{ book.title }}</p>
                         <p class="author">{{ book.author }}</p>

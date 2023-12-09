@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text, UniqueConstraint
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Float, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -14,6 +14,8 @@ class Users(UserMixin, db.Model):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=func.current_timestamp())
     favourite_genres = relationship('Genres', secondary='user_genres', back_populates='users')
+    reviews = relationship('BookReviews', back_populates='user')
+    ratings = relationship('BookRatings', back_populates='user')
 
 class UserGenres(db.Model):
     user_genre_id = Column(Integer, primary_key=True, autoincrement=True)
@@ -39,8 +41,15 @@ class BookReviews(db.Model):
     id = Column(Integer, primary_key=True, autoincrement=True)
     book_id = Column(Integer, ForeignKey('books.book_id'))
     user_id = Column(Integer, ForeignKey('users.user_id'))
-    rating = Column(Integer)
     review = Column(Text)
+    user = relationship('Users', back_populates='reviews')
+
+class BookRatings(db.Model):
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    book_id = Column(Integer, ForeignKey('books.book_id'))
+    user_id = Column(Integer, ForeignKey('users.user_id'))
+    rating = Column(Integer)
+    user = relationship('Users', back_populates='ratings')
 
 class BookGenres(db.Model):
     book_id = Column(Integer, ForeignKey('books.book_id'), primary_key=True)

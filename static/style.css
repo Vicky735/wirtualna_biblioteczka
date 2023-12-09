@@ -47,6 +47,7 @@ p {
 h1 {
     color: #054488;
     font-size: 28px;
+    padding: auto;
 }
 
 
@@ -132,7 +133,7 @@ h2 {
     font-size: 28px;
     font-style: italic;
     font-weight: bold;
-    margin-top: 40px;
+    margin-top: 20px;
 }
 
 ul.bookshelves {
@@ -171,7 +172,7 @@ li.bookshelf {
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 120%; 
+    width: 140%; 
     height: 5px; 
     background-color: rgb(110, 62, 28); 
     border-radius: 4px;
@@ -196,4 +197,24 @@ li.bookshelf {
 
 .genre-checkbox {
     margin-right: 15px; 
+}
+
+
+.flash-messages {
+    list-style: none;
+    padding: 10px;
+}
+
+.flash-messages li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.success {
+    color: #28a745;
+}
+
+.error {
+    color: #dc3545;
 }

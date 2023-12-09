@@ -31,11 +31,11 @@
             </ul>
         </div>
     </nav>
+    <p></p>
 
     <h1>Twój profil</h1>
 
     {% if 'username' in session %}
-        <p>Witaj, {{ session['username'] }}!</p>
 
         <h2>Twoje półki z książkami</h2>
         <div class="bookshelves">
@@ -45,7 +45,9 @@
                     <ul>
                         {% for book_on_shelf in bookshelf.books %}
                             <li>
-                                <img src="{{ book_on_shelf.cover_img_url }}" alt="{{ book_on_shelf.title }} Cover">
+                                <a href="{{ url_for('book_details', book_id=book_on_shelf.book_id) }}">
+                                    <img src="{{ book_on_shelf.cover_img_url }}" alt="{{ book_on_shelf.title }} Cover">
+                                </a>
                                 <div class="shelf-bar"></div>
                             </li>
                         {% endfor %}
@@ -53,28 +55,6 @@
                 </div>
             {% endfor %}
         </div>
-
-
-        <h2>Followed Users</h2>
-        <ul>
-            {% for followed_user in user.followed_users %}
-                <li>{{ followed_user.username }}</li>
-            {% endfor %}
-        </ul>
-
-        <h2>Blocked Users</h2>
-        <ul>
-            {% for blocked_user in user.blocked_users %}
-                <li>{{ blocked_user.username }}</li>
-            {% endfor %}
-        </ul>
-
-        <h2>Favorite Genres</h2>
-        <ul>
-            {% for genre in user.favorite_genres %}
-                <li>{{ genre.genre_name }}</li>
-            {% endfor %}
-        </ul>
 
     {% else %}
         <p>Zaloguj się aby uzyskać dostęp do swojego profilu.</p>

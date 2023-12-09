@@ -31,16 +31,18 @@
             </ul>
         </div>
     </nav>
-
-    <form method="get" action="{{ url_for('search_books') }}">
-        <label for="search_query">Wyszukaj książki po tytule lub autorze:</label>
-        <input type="text" name="search_query" id="search_query" required>
-        <button type="submit">Szukaj</button>
-    </form>
+    <p></p>
 
     <h1>Witaj, {{ session['username'] }}!</h1>
 
     {% if user_favourite_genres %}
+
+    <form method="get" action="{{ url_for('search_books') }}">
+        <label for="search_query">Wyszukaj książki po tytule lub autorze:</label>
+        <input type="text" name="search_query" id="search_query" required>
+        <button type="submit" class="btn btn-primary">Szukaj</button>
+    </form>
+
         <h2>Polecane książki</h2>
         <ul>
             {% for genre in user_favourite_genres %}
@@ -64,15 +66,17 @@
     {% else %}
         <h2>Wybierz 5 ulubionych gatunków:</h2>
         <form method="post" action="{{ url_for('home') }}" onsubmit="return validateGenres();">
-            <div id="genresContainer">
+            <div id="genresContainer" class="checkbox-list">
                 {% for genre in genres %}
-                    <div>
-                        <input type="checkbox" name="selected_genres" value="{{ genre.genre_id }}" id="genre_{{ genre.genre_id }}">
-                        <label for="genre_{{ genre.genre_id }}">{{ genre.genre_name }}</label>
+                    <div class="checkbox-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="selected_genres" value="{{ genre.genre_id }}" id="genre_{{ genre.genre_id }}" class="genre-checkbox">
+                            {{ genre.genre_name }}
+                        </label>
                     </div>
                 {% endfor %}
             </div>
-            <button type="submit">Dodaj do ulubionych</button>
+            <button type="submit" class="btn btn-primary">Dodaj do ulubionych</button>
         </form>
     {% endif %}
 
@@ -87,8 +91,24 @@
     {% endwith %}
 
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var checkboxes = document.querySelectorAll('#genresContainer input.genre-checkbox');
+            var maxGenres = 5;
+    
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    var selectedGenres = document.querySelectorAll('#genresContainer input.genre-checkbox:checked');
+                    
+                    if (selectedGenres.length > maxGenres) {
+                        alert('Możesz wybrać maksymalnie 5 ulubionych gatunków.');
+                        this.checked = false;
+                    }
+                });
+            });
+        });
+    
         function validateGenres() {
-            var selectedGenres = document.querySelectorAll('#genresContainer input[name="selected_genres"]:checked');
+            var selectedGenres = document.querySelectorAll('#genresContainer input.genre-checkbox:checked');
             if (selectedGenres.length !== 5) {
                 alert('Proszę wybierz dokładnie 5 gatunków');
                 return false;
